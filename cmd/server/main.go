@@ -1,31 +1,34 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net/http"
+	"os"
 
 	"chat-backend/internal/api"
 
 	"github.com/gorilla/mux"
 )
 
-// Handler é a função que o Vercel vai chamar
-func Handler(w http.ResponseWriter, r *http.Request) {
-	router := mux.NewRouter()
-	api.SetupRoutes(router)
+func main() {
+	r := mux.NewRouter()
+	api.SetupRoutes(r)
 
-	// Adiciona o handler para a rota raiz
-	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	// Adicione um handler para a rota raiz
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("API is running"))
 	})
 
-	// Serve a requisição usando o router
-	router.ServeHTTP(w, r)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Printf("Server starting on port %s", port)
+	log.Fatal(http.ListenAndServe(":"+port, r))
 }
 
-// Mantemos a função main para testes locais
-func main() {
-	http.HandleFunc("/", Handler)
-	fmt.Println("Server is running on :8080")
-	http.ListenAndServe(":8080", nil)
+// Handler é a função que o Vercel vai chamar
+func Handler(w http.ResponseWriter, r *http.Request) {
+	main()
 }

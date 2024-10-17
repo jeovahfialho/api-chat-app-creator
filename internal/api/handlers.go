@@ -2,6 +2,8 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -15,25 +17,46 @@ var currentStep int = 1
 
 func SetupRoutes(r *mux.Router) {
 	r.HandleFunc("/api/message", handleMessage).Methods("POST")
-	r.HandleFunc("/health", handleHealth).Methods("GET") // Nova rota de health check
 }
 
 func handleMessage(w http.ResponseWriter, r *http.Request) {
+	log.Println("Received request to /api/message")
+
+	// Read and log the request body
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("Error reading request body: %v", err)
+		http.Error(w, "Error reading request", http.StatusBadRequest)
+		return
+	}
+	log.Printf("Request body: %s", string(body))
+
 	var msg models.Message
-	if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
-		log.Printf("Error decoding request: %v", err)
+	if err := json.Unmarshal(body, &msg); err != nil {
+		log.Printf("Error unmarshalling request body: %v", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	msg.Content = "User: " + msg.Content + "\nAssistant: "
+	log.Printf("Decoded message: %+v", msg)
 
+	if msg.Content == "" {
+		log.Println("Error: Empty message content")
+		http.Error(w, "Message content cannot be empty", http.StatusBadRequest)
+		return
+	}
+
+	msg.Content = fmt.Sprintf("User: %s\nAssistant: ", msg.Content)
+
+	log.Printf("Sending message to Claude: %s", msg.Content)
 	response, err := claude.SendMessage(msg.Content)
 	if err != nil {
 		log.Printf("Error calling Claude: %v", err)
 		http.Error(w, "Error processing message", http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("Received response from Claude: %s", response)
 
 	currentStep++
 
@@ -48,15 +71,6 @@ func handleMessage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error generating response", http.StatusInternalServerError)
 		return
 	}
-}
 
-// Nova função de health check
-func handleHealth(w http.ResponseWriter, r *http.Request) {
-	response := map[string]string{
-		"status":  "OK",
-		"message": "Server is running",
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	log.Println("Response sent successfully")
 }

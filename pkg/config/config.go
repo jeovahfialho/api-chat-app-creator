@@ -14,7 +14,7 @@ type Config struct {
 
 func Load() (*Config, error) {
 	if err := godotenv.Load(); err != nil {
-		return nil, err
+		fmt.Printf("Warning: .env file not found, using system environment variables\n")
 	}
 
 	config := &Config{
@@ -22,7 +22,11 @@ func Load() (*Config, error) {
 		ClaudeAPIKey: os.Getenv("CLAUDE_API_KEY"),
 	}
 
-	fmt.Printf("Loaded API Key: %s\n", config.ClaudeAPIKey) // Log para debug
+	if config.ClaudeAPIKey == "" {
+		return nil, fmt.Errorf("CLAUDE_API_KEY is not set")
+	}
+
+	fmt.Printf("Loaded API Key: %s\n", config.ClaudeAPIKey[:5]+"...")
 
 	return config, nil
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"chat-backend/pkg/config"
@@ -19,6 +20,7 @@ type ClaudeResponse struct {
 func SendMessage(content string) (string, error) {
 	cfg, err := config.Load()
 	if err != nil {
+		log.Printf("Error loading config: %v", err)
 		return "", fmt.Errorf("error loading config: %v", err)
 	}
 
@@ -33,14 +35,15 @@ func SendMessage(content string) (string, error) {
 
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
+		log.Printf("Error marshalling payload: %v", err)
 		return "", fmt.Errorf("error marshalling payload: %v", err)
 	}
 
-	fmt.Printf("Sending request to Claude API: %s\n", url)
-	fmt.Printf("Payload: %s\n", string(jsonPayload))
+	log.Printf("Sending request to Claude API: %s", url)
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonPayload))
 	if err != nil {
+		log.Printf("Error creating request: %v", err)
 		return "", fmt.Errorf("error creating request: %v", err)
 	}
 
@@ -51,28 +54,30 @@ func SendMessage(content string) (string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
+		log.Printf("Error sending request: %v", err)
 		return "", fmt.Errorf("error sending request: %v", err)
 	}
 	defer resp.Body.Close()
 
-	fmt.Printf("Response status: %s\n", resp.Status)
+	log.Printf("Response status: %s", resp.Status)
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		log.Printf("Error reading response body: %v", err)
 		return "", fmt.Errorf("error reading response body: %v", err)
 	}
 
-	fmt.Printf("Raw response body: %s\n", string(body))
+	log.Printf("Response body: %s", string(body))
 
 	var claudeResp ClaudeResponse
 	if err := json.Unmarshal(body, &claudeResp); err != nil {
+		log.Printf("Error unmarshalling response: %v", err)
 		return "", fmt.Errorf("error unmarshalling response: %v", err)
 	}
 
-	fmt.Printf("Unmarshalled response: %+v\n", claudeResp)
-
-	if len(claudeResp.Content) == 0 || claudeResp.Content[0].Text == "" {
-		return "", fmt.Errorf("unexpected response format: content not found or empty")
+	if len(claudeResp.Content) == 0 {
+		log.Printf("No content in response")
+		return "", fmt.Errorf("no content in response")
 	}
 
 	return claudeResp.Content[0].Text, nil
