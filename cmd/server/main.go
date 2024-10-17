@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	"chat-backend/internal/api"
+	"chat-backend/pkg/api"
 
 	"github.com/gorilla/mux"
 )

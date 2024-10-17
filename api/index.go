@@ -1,35 +1,26 @@
-package handler
+// Package api provides the entry point for all serverless functions.
+package api
 
 import (
-	"log"
 	"net/http"
-	"os"
 
-	"chat-backend/internal/api"
+	"chat-backend/pkg/api"
 
 	"github.com/gorilla/mux"
 )
 
+// Handler represents the entry point for all our serverless functions.
 func Handler(w http.ResponseWriter, r *http.Request) {
 	router := mux.NewRouter()
+
+	// Configurar rotas
 	api.SetupRoutes(router)
 
-	// Adicione um handler para a rota raiz
+	// Adicionar handler para a rota raiz
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("API is running"))
 	})
 
-	// Ao invés de iniciar um servidor, usamos o router diretamente
+	// Servir a requisição
 	router.ServeHTTP(w, r)
-}
-
-// init function to set up any necessary configurations
-func init() {
-	// Você pode mover qualquer configuração inicial aqui
-	// Por exemplo, carregar variáveis de ambiente
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-	log.Printf("API configured to run on port %s", port)
 }
