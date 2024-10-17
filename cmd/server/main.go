@@ -3,22 +3,27 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"chat-backend/internal/api"
-	"chat-backend/pkg/config"
 
 	"github.com/gorilla/mux"
 )
 
 func main() {
-	cfg, err := config.Load()
-	if err != nil {
-		log.Fatalf("Error loading config: %v", err)
-	}
-
 	r := mux.NewRouter()
 	api.SetupRoutes(r)
 
-	log.Printf("Server starting on port %s", cfg.Port)
-	log.Fatal(http.ListenAndServe(":"+cfg.Port, r))
+	// Adicione um handler para a rota raiz
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("API is running"))
+	})
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Printf("Server starting on port %s", port)
+	log.Fatal(http.ListenAndServe(":"+port, r))
 }

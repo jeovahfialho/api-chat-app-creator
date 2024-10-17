@@ -15,6 +15,7 @@ var currentStep int = 1
 
 func SetupRoutes(r *mux.Router) {
 	r.HandleFunc("/api/message", handleMessage).Methods("POST")
+	r.HandleFunc("/health", handleHealth).Methods("GET") // Nova rota de health check
 }
 
 func handleMessage(w http.ResponseWriter, r *http.Request) {
@@ -47,4 +48,15 @@ func handleMessage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error generating response", http.StatusInternalServerError)
 		return
 	}
+}
+
+// Nova função de health check
+func handleHealth(w http.ResponseWriter, r *http.Request) {
+	response := map[string]string{
+		"status":  "OK",
+		"message": "Server is running",
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
