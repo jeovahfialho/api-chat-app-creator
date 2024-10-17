@@ -27,8 +27,3 @@ func main() {
 	log.Printf("Server starting on port %s", port)
 	log.Fatal(http.ListenAndServe(":"+port, r))
 }
-
-// Handler é a função que o Vercel vai chamar
-func Handler(w http.ResponseWriter, r *http.Request) {
-	main()
-}
