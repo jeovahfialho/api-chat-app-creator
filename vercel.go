@@ -1,4 +1,4 @@
-package handler
+package main // Note que mudamos para package main
 
 import (
 	"net/http"
@@ -13,4 +13,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	router := mux.NewRouter()
 	api.SetupRoutes(router)
 	router.ServeHTTP(w, r)
+}
+
+func main() {
+	// Esta função main é necessária para o Vercel, mas não será usada
 }

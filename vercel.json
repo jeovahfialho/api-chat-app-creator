@@ -10,7 +10,7 @@
     "routes": [
       {
         "src": "/(.*)",
-        "dest": "/vercel.go"
+        "dest": "vercel.go"
       }
     ]
   }
