@@ -1,4 +1,4 @@
-package main // Note que mudamos para package main
+package handler // Note que mudamos para package main
 
 import (
 	"net/http"
